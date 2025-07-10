@@ -6,4 +6,6 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 
 target_link_libraries(TimerApp PUBLIC TimerAppLib)
+target_link_libraries(TimerApp PUBLIC glfw)
+target_link_libraries(TimerApp PUBLIC GladLib)
 target_include_directories(TimerApp PRIVATE ${PROJECT_SOURCE_DIR})

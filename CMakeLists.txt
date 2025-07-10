@@ -14,3 +14,5 @@ project ("ClockApp1")
 # Include sub-projects.
 add_subdirectory ("TimerAppLib")
 add_subdirectory ("TimerApp")
+#add_subdirectory ("GladLib")
+add_subdirectory("glfw-3.4")
