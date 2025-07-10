@@ -12,4 +12,5 @@ endif()
 project ("ClockApp1")
 
 # Include sub-projects.
-#add_subdirectory ("ClockApp1")
+add_subdirectory ("TimerAppLib")
+add_subdirectory ("TimerApp")
