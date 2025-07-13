@@ -9,8 +9,11 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project ("ClockApp1")
+project (ClockApp1)
 
+find_package(OpenGL REQUIRED)
 # Include sub-projects.
-#add_subdirectory ("ClockApp1")
-#added random line
+
+add_subdirectory ("TimerAppLib")
+add_subdirectory ("TimerApp")
+add_subdirectory("glfw-3.4")
