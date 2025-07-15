@@ -1,0 +1,2 @@
+#define IMAGE_PATH "@PROJECT_SOURCE_DIR@/deps1"
+#define SHADER_PATH "@PROJECT_SOURCE_DIR@/deps1/Shaders"

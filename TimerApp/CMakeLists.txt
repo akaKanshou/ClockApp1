@@ -1,5 +1,5 @@
 
-add_executable(TimerApp "TimerApp.cpp"  "glad.c")
+add_executable(TimerApp "TimerApp.cpp" "glad.c")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET TimerApp PROPERTY CXX_STANDARD 20)
