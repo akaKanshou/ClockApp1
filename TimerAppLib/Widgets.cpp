@@ -116,11 +116,6 @@ void FrameBuffer::draw() const {
 
 
 
-
-//TimerClock::TimerClock() : bg(Image2D(1, "\\home\\kanshou\\bg3.png")) {
-//	
-//}
-
 TimerClock::TimerClock() : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
 	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
 

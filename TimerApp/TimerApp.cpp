@@ -45,6 +45,8 @@ int main() {
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 	}
 
 	std::cout << "achieved partial greateness\n";
