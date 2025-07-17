@@ -9,10 +9,37 @@
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <Shaderh.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 GLenum glCheckError_(const char* file, int line);
 
+
+class TextLib {
+private:
+	FT_Library Library;
+
+public:
+	TextLib();
+	~TextLib();
+
+	class Font {
+	public:
+		struct Character {
+			unsigned int TextureID;
+			glm::ivec2 Size;
+			glm::ivec2 Bearing;
+			unsigned int Advance;
+		};
+
+		std::vector<Character> CharSet;
+		Font() = default;
+		Font(FT_Face& face);
+	};
+
+	Font loadFont(const char* fontname, int size);
+};
 
 
 class Shapes {
@@ -98,13 +125,14 @@ class TimerClock : protected SqrWidget, public std::enable_shared_from_this<Time
 private:
 	Texture2D bg;
 	Shader shaderBase;
+	TextLib::Font Font_48;
 
 public:
-	TimerClock();
+	TimerClock(TextLib& textLib);
 
 	typedef std::shared_ptr<TimerClock> pointer;
 
-	static TimerClock::pointer getTimerClock();
+	static TimerClock::pointer getTimerClock(TextLib& textLib);
 
 	void draw() const override;
 };

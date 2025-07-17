@@ -22,6 +22,75 @@ GLenum glCheckError_(const char* file, int line) {
 }
 
 
+
+TextLib::TextLib() {
+	if (FT_Init_FreeType(&Library)) {
+		std::cout << "ERROR::FREETYPE: Could not init FreeType Library\n";
+		return;
+	}
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+}
+
+TextLib::~TextLib() {
+	FT_Done_FreeType(Library);
+}
+
+TextLib::Font TextLib::loadFont(const char* fontname, int size) {
+	FT_Face face;
+	if (FT_New_Face(Library, fontname, 0, &face)) {
+		std::cout << "ERROR::FREETYPE: Could not load font: " << fontname << "\n";
+	}
+
+	FT_Set_Pixel_Sizes(face, 0, size);
+
+	Font newFont(face);
+
+	FT_Done_Face(face);
+	return newFont;
+}
+
+TextLib::Font::Font(FT_Face& face) : CharSet(128){
+	for (unsigned char c = 0; c < 128; c++) {
+		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+		{
+			std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+			continue;
+		}
+		
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			face->glyph->bitmap.width,
+			face->glyph->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			face->glyph->bitmap.buffer
+		);
+		
+		/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		Character character = {
+		texture,
+		glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+		glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+		face->glyph->advance.x
+		};
+
+		CharSet.push_back(character);
+	}
+}
+
+
+
 float Shapes::Square[24] = {
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		-1.0f, -1.0f,  0.0f, 0.0f,
@@ -116,14 +185,13 @@ void FrameBuffer::draw() const {
 
 
 
-TimerClock::TimerClock() : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
+TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
 	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
-
-
+	Font_48 = textLib.loadFont(FONT_PATH"/Futura-M.ttf", 48);
 }
 
-TimerClock::pointer TimerClock::getTimerClock() {
-	return std::make_shared<TimerClock>();
+TimerClock::pointer TimerClock::getTimerClock(TextLib& textLib) {
+	return std::make_shared<TimerClock>(textLib);
 }
 
 void TimerClock::draw() const {

@@ -17,6 +17,7 @@ find_package(OpenGL REQUIRED)
 add_subdirectory ("TimerAppLib")
 add_subdirectory ("TimerApp")
 add_subdirectory("glfw-3.4")
+add_subdirectory("freetype")
 
 add_library(Settings INTERFACE)
 
