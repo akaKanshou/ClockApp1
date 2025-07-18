@@ -35,9 +35,11 @@ int main() {
 	glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+	std::cout << "here\n";
 	TextLib textLib;
-
+	std::cout << "libinit\n";
 	TimerClock Timer(textLib);
+	std::cout << "made timer\n";
 
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);

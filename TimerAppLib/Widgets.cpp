@@ -36,11 +36,12 @@ TextLib::~TextLib() {
 	FT_Done_FreeType(Library);
 }
 
-TextLib::Font TextLib::loadFont(const char* fontname, int size) {
+Font TextLib::loadFont(const char* fontname, int size) {
 	FT_Face face;
 	if (FT_New_Face(Library, fontname, 0, &face)) {
 		std::cout << "ERROR::FREETYPE: Could not load font: " << fontname << "\n";
 	}
+	else std::cout << "no issue loading face?\n";
 
 	FT_Set_Pixel_Sizes(face, 0, size);
 
@@ -50,7 +51,7 @@ TextLib::Font TextLib::loadFont(const char* fontname, int size) {
 	return newFont;
 }
 
-TextLib::Font::Font(FT_Face& face) : CharSet(128){
+Font::Font(FT_Face& face) : CharSet(128){
 	for (unsigned char c = 0; c < 128; c++) {
 		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
 		{
@@ -187,7 +188,17 @@ void FrameBuffer::draw() const {
 
 TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
 	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
-	Font_48 = textLib.loadFont(FONT_PATH"/Futura-M.ttf", 48);
+	std::cout << "loading font : " FONT_PATH"/arial.ttf";
+	Font_48 = textLib.loadFont(FONT_PATH"/arial.ttf", 48);
+}
+
+
+TimerClock::TimerClock() : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
+	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
+}
+
+TimerClock::pointer TimerClock::getTimerClock() {
+	return std::make_shared<TimerClock>();
 }
 
 TimerClock::pointer TimerClock::getTimerClock(TextLib& textLib) {

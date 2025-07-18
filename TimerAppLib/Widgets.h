@@ -15,6 +15,20 @@
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 GLenum glCheckError_(const char* file, int line);
 
+class Font {
+public:
+	struct Character {
+		unsigned int TextureID;
+		glm::ivec2 Size;
+		glm::ivec2 Bearing;
+		unsigned int Advance;
+	};
+
+	std::vector<Character> CharSet;
+	Font() = default;
+	Font(FT_Face& face);
+};
+
 
 class TextLib {
 private:
@@ -23,20 +37,6 @@ private:
 public:
 	TextLib();
 	~TextLib();
-
-	class Font {
-	public:
-		struct Character {
-			unsigned int TextureID;
-			glm::ivec2 Size;
-			glm::ivec2 Bearing;
-			unsigned int Advance;
-		};
-
-		std::vector<Character> CharSet;
-		Font() = default;
-		Font(FT_Face& face);
-	};
 
 	Font loadFont(const char* fontname, int size);
 };
@@ -125,14 +125,16 @@ class TimerClock : protected SqrWidget, public std::enable_shared_from_this<Time
 private:
 	Texture2D bg;
 	Shader shaderBase;
-	TextLib::Font Font_48;
+	Font Font_48;
 
 public:
 	TimerClock(TextLib& textLib);
+	TimerClock();
 
 	typedef std::shared_ptr<TimerClock> pointer;
 
 	static TimerClock::pointer getTimerClock(TextLib& textLib);
+	static TimerClock::pointer getTimerClock();
 
 	void draw() const override;
 };
