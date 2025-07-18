@@ -1,5 +1,97 @@
 #include "Widgets.h"
 
+
+GLenum glCheckError_(const char* file, int line) {
+	GLenum errorCode;
+	while ((errorCode = glGetError()) != GL_NO_ERROR)
+	{
+		std::string error;
+		switch (errorCode)
+		{
+		case GL_INVALID_ENUM: error = "INVALID_ENUM"; break;
+		case GL_INVALID_VALUE: error = "INVALID_VALUE"; break;
+		case GL_INVALID_OPERATION: error = "INVALID_OPERATION"; break;
+		case GL_OUT_OF_MEMORY: error = "OUT_OF_MEMORY"; break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+		}
+		std::cout << error << " | " << file << " (" << line << ")";
+		std::cout << std::endl;
+	}
+	return errorCode;
+}
+
+
+
+TextLib::TextLib() {
+	if (FT_Init_FreeType(&Library)) {
+		std::cout << "ERROR::FREETYPE: Could not init FreeType Library\n";
+		return;
+	}
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+}
+
+TextLib::~TextLib() {
+	FT_Done_FreeType(Library);
+}
+
+Font TextLib::loadFont(const char* fontname, int size) {
+	FT_Face face;
+	if (FT_New_Face(Library, fontname, 0, &face)) {
+		std::cout << "ERROR::FREETYPE: Could not load font: " << fontname << "\n";
+	}
+	else std::cout << "no issue loading face?\n";
+
+	FT_Set_Pixel_Sizes(face, 0, size);
+
+	Font newFont(face);
+
+	FT_Done_Face(face);
+	return newFont;
+}
+
+Font::Font(FT_Face& face) : CharSet(128){
+	for (unsigned char c = 0; c < 128; c++) {
+		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+		{
+			std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+			continue;
+		}
+		
+		unsigned int texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			face->glyph->bitmap.width,
+			face->glyph->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			face->glyph->bitmap.buffer
+		);
+		
+		/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		Character character = {
+		texture,
+		glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+		glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+		face->glyph->advance.x
+		};
+
+		CharSet.push_back(character);
+	}
+}
+
+
+
 float Shapes::Square[24] = {
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		-1.0f, -1.0f,  0.0f, 0.0f,
@@ -10,11 +102,58 @@ float Shapes::Square[24] = {
 		 1.0f,  1.0f,  1.0f, 1.0f
 };
 
-SquareWidget::SquareWidget() : shader(), VAO(0), VBO(0), bottom(0), left(0), height(0), width(0) {
 
+
+
+Image2D::Image2D(bool useRGBA, std::string filePath) : useRGBA(useRGBA) {
+	data = ResourceManager::loadImage2D(filePath, this);
 }
 
-SquareWidget::SquareWidget(Shader shader) : shader(shader),  VAO(0), VBO(0), bottom(0), left(0), height(0), width(0) {
+std::shared_ptr<unsigned char*> Image2D::getData() const {
+	return data;
+}
+
+Texture2D::Texture2D() : textureId(0) {
+	glGenTextures(1, &textureAddr);
+}
+
+Image2D::~Image2D() {
+	stbi_image_free(*data.get());
+}
+
+
+
+Texture2D::Texture2D(Image2D& source) : textureId(0) {
+	glBindTexture(GL_TEXTURE_2D, textureAddr);
+	auto format = source.useRGBA ? GL_RGBA : GL_RGB;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, source.width, source.height, 0, GL_RGB, GL_UNSIGNED_BYTE, *source.getData().get());
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+Texture2D::Texture2D(Image2D&& source) : textureId(0) {
+	glBindTexture(GL_TEXTURE_2D, textureAddr);
+	int format = source.useRGBA ? GL_RGBA : GL_RGB;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, source.width, source.height, 0, format, GL_UNSIGNED_BYTE, *source.getData().get());
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void Texture2D::setId(int id) {
+	textureId = id;
+}
+
+int Texture2D::getId() const {
+	return textureId;
+}
+
+unsigned int Texture2D::getAddr() const {
+	return textureAddr;
+}
+
+
+
+
+SqrWidget::SqrWidget() : VAO(0), VBO(0), bottom(0), left(0), height(0), width(0) {
+
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
@@ -31,9 +170,12 @@ SquareWidget::SquareWidget(Shader shader) : shader(shader),  VAO(0), VBO(0), bot
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 }
 
-FrameBuffer::FrameBuffer(Shader shader) : SquareWidget(shader) {
+
+
+FrameBuffer::FrameBuffer(Shader shader) {
 
 }
 
@@ -41,3 +183,46 @@ void FrameBuffer::draw() const {
 	
 }
 
+
+
+
+TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
+	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
+	std::cout << "loading font : " FONT_PATH"/arial.ttf";
+	Font_48 = textLib.loadFont(FONT_PATH"/arial.ttf", 48);
+}
+
+
+TimerClock::TimerClock() : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
+	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
+}
+
+TimerClock::pointer TimerClock::getTimerClock() {
+	return std::make_shared<TimerClock>();
+}
+
+TimerClock::pointer TimerClock::getTimerClock(TextLib& textLib) {
+	return std::make_shared<TimerClock>(textLib);
+}
+
+void TimerClock::draw() const {
+	shaderBase.use();
+	glBindVertexArray(VAO);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, bg.getAddr());
+	shaderBase.setInt("backgroundImg", 0);
+	
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glBindVertexArray(0);
+	Shader::unbind();
+}
+
+
+std::shared_ptr<unsigned char*> ResourceManager::loadImage2D(std::string filePath, Image2D* image) {
+	std::shared_ptr<unsigned char*> data = std::make_shared<unsigned char*>(
+		stbi_load(filePath.c_str(), &image->width, &image->height, &image->channels, 0));
+	if (!(*data.get())) std::cout << "bad_image\n";
+	return data;
+}

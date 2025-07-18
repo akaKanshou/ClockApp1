@@ -18,8 +18,8 @@ public:
 		std::string fragmentCode;
 		std::ifstream vsFile;
 		std::ifstream fsFile;
-		vsFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		fsFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		vsFile.exceptions(std::ifstream::badbit);
+		fsFile.exceptions(std::ifstream::badbit);
 
 		try {
 			vsFile.open(vertexsource);
@@ -36,6 +36,7 @@ public:
 			fragmentCode = fsStream.str();
 		}
 		catch (std::ifstream::failure e) {
+			std::cout << e.what() << "\n";
 			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 		}
 
@@ -82,6 +83,12 @@ public:
 		glDeleteShader(fragmentShader);
 	}
 
+	Shader& operator=(Shader&& other)& noexcept {
+		this->program = other.program;
+		other.program = 0;
+		return *this;
+	}
+
 	void use() const {
 		if (!program) {
 			std::cout << "Invalid_Shader_Used\n";
@@ -90,29 +97,34 @@ public:
 		glUseProgram(program);
 	}
 
-	void setInt(const std::string& name, int value) {
+	void setInt(const std::string& name, int value) const {
 		glUniform1i(glGetUniformLocation(program, name.c_str()), (int)value);
 	}
 
-	void setFloat(const std::string& name, float value) {
+	void setFloat(const std::string& name, float value) const {
 		glUniform1f(glGetUniformLocation(program, name.c_str()), value);
 	}
 
-	void setVec3(const std::string& name, float a, float b, float c) {
+	void setVec3(const std::string& name, float a, float b, float c) const {
 		glUniform3f(glGetUniformLocation(program, name.c_str()), a,b,c);
 	}
 
-	void setVec4(const std::string& name, float a, float b, float c, float d) {
+	void setVec4(const std::string& name, float a, float b, float c, float d) const {
 		glUniform4f(glGetUniformLocation(program, name.c_str()), a,b,c,d);	
 	}
 
-	void setVec2(const std::string& name, float a, float b) {
+	void setVec2(const std::string& name, float a, float b) const {
 		glUniform2f(glGetUniformLocation(program, name.c_str()), a, b);
 	}
 
-	void setMat4(const std::string& name, glm::mat4& matrix) {
+	void setMat4(const std::string& name, glm::mat4& matrix) const {
 		glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
 	}
 
+
+	static void unbind() {
+		glUseProgram(0);
+	}
 };
+
 #endif // !SHADER_H

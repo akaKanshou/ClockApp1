@@ -17,3 +17,10 @@ find_package(OpenGL REQUIRED)
 add_subdirectory ("TimerAppLib")
 add_subdirectory ("TimerApp")
 add_subdirectory("glfw-3.4")
+add_subdirectory("freetype")
+
+add_library(Settings INTERFACE)
+
+configure_file(filePaths.h.in filePaths.h)
+target_include_directories(Settings INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_features(Settings INTERFACE cxx_std_20)
