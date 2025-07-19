@@ -9,6 +9,7 @@
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <Shaderh.h>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -18,7 +19,7 @@ GLenum glCheckError_(const char* file, int line);
 class Font {
 public:
 	struct Character {
-		unsigned int TextureID;
+		unsigned int TextureAddr;
 		glm::ivec2 Size;
 		glm::ivec2 Bearing;
 		unsigned int Advance;
@@ -33,12 +34,33 @@ public:
 class TextLib {
 private:
 	FT_Library Library;
+	Shader textShader;
+	std::vector<Font> Fonts;
+
+	unsigned int VAO, VBO;
 
 public:
-	TextLib();
-	~TextLib();
+	enum ALIGNMENT {
+		LEFT_ALIGNED = 0,
+		RIGHT_ALIGNED = 1,
+		CENTER_ALIGNED = 2,
+
+		TOP_ALIGNED = 3,
+		MID_ALIGNED = 4,
+		BOTTOM_ALIGNED = 5,
+	};
+
+	enum FONT {
+		ARIAL = 0,
+		FUTURA = 1
+	};
+
+	TextLib(Shader&& shader);
+	~TextLib() = default;
 
 	Font loadFont(const char* fontname, int size);
+
+	void draw(ALIGNMENT x_alignment, ALIGNMENT y_alignment, std::string s, int x, int y, int scale, glm::vec3 color, FONT font);
 };
 
 
@@ -125,16 +147,16 @@ class TimerClock : protected SqrWidget, public std::enable_shared_from_this<Time
 private:
 	Texture2D bg;
 	Shader shaderBase;
-	Font Font_48;
+	TextLib& textLib;
 
 public:
-	TimerClock(TextLib& textLib);
-	TimerClock();
-
 	typedef std::shared_ptr<TimerClock> pointer;
 
+	TimerClock(TextLib& textLib);
 	static TimerClock::pointer getTimerClock(TextLib& textLib);
-	static TimerClock::pointer getTimerClock();
+
+	/*TimerClock();
+	static TimerClock::pointer getTimerClock();*/
 
 	void draw() const override;
 };

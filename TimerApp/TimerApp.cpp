@@ -33,13 +33,11 @@ int main() {
 	}
 
 	glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.35f, 0.0f, 0.6f, 0.0f);
 
-	std::cout << "here\n";
-	TextLib textLib;
-	std::cout << "libinit\n";
+	TextLib textLib(Shader(SHADER_PATH"/textShaderVertex.txt", SHADER_PATH"/textShaderFragment.txt"));
 	TimerClock Timer(textLib);
-	std::cout << "made timer\n";
+
 
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
