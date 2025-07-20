@@ -10,6 +10,9 @@
 #include <glm/glm.hpp>
 #include <Shaderh.h>
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -143,20 +146,34 @@ public:
 	}
 };
 
+class Button : protected SqrWidget{
+	Texture2D buttonTexture;
+	Shader buttonShader;
+	TextLib& textLib;
+
+public:
+	Button(TextLib& textLib);
+	Button(TextLib& textLib, std::string vertexShader, std::string fragmentShader, std::string imageLoc);
+
+	void draw() const;
+
+	void configure(std::string vertexShader, std::string fragmentShader, bool useRGBA, std::string imageLoc);
+};
+
+
 class TimerClock : protected SqrWidget, public std::enable_shared_from_this<TimerClock> {
 private:
 	Texture2D bg;
 	Shader shaderBase;
 	TextLib& textLib;
-
+	Button button;
+	std::string current, timer;
+	
 public:
 	typedef std::shared_ptr<TimerClock> pointer;
 
 	TimerClock(TextLib& textLib);
 	static TimerClock::pointer getTimerClock(TextLib& textLib);
-
-	/*TimerClock();
-	static TimerClock::pointer getTimerClock();*/
 
 	void draw() const override;
 };

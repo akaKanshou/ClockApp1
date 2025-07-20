@@ -266,20 +266,56 @@ void FrameBuffer::draw() const {
 }
 
 
+Button::Button(TextLib& textLib) : textLib(textLib) {
 
+}
 
-TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")), textLib(textLib) {
-	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
+Button::Button(TextLib& textLib, std::string vertexShader, std::string fragmentShader, std::string imageLoc) : 
+	textLib(textLib), buttonShader(vertexShader.c_str(), fragmentShader.c_str()), buttonTexture(Image2D(true, imageLoc)) {
+
+}
+
+void Button::draw() const {
+	buttonShader.use();
+	glBindVertexArray(VAO);
+
+	
+	buttonShader.setMat4("projection", glm::ortho(0.0f, 800.0f, 0.0f, 800.0f));
+
+	glm::mat4 world = glm::mat4(1.0f);
+	world = glm::translate(world, glm::vec3(400.0f, 400.0f, 0.0f));
+	world = glm::rotate(world, (float)glm::radians(glfwGetTime()) * 5.0f, glm::vec3(0.0f, 0.0f, -1.0f));
+	world = glm::translate(world, glm::vec3(0.0f, 306.0f, 0.0f));
+	world = glm::scale(world, glm::vec3(32.0f, 32.0f, 1.0f));
+	buttonShader.setMat4("world", world);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, buttonTexture.getAddr());
+	buttonShader.setInt("backgroundImg", 0);
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glBindVertexArray(0);
+	Shader::unbind();
+}
+
+void Button::configure(std::string vertexShader, std::string fragmentShader, bool useRGBA, std::string imageLoc) {
+	buttonShader = Shader(vertexShader.c_str(), fragmentShader.c_str());
+	buttonTexture = Texture2D(Image2D(useRGBA, imageLoc));
 }
 
 
-/*TimerClock::TimerClock() : bg(Image2D(1, IMAGE_PATH"/bg3.png")) {
-	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
-}
 
-TimerClock::pointer TimerClock::getTimerClock() {
-	return std::make_shared<TimerClock>();
-}*/
+
+TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")), textLib(textLib), button(textLib) {
+	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
+
+	button.configure(SHADER_PATH"/buttonShaderVertex.txt", SHADER_PATH"/buttonShaderFragment.txt", true, IMAGE_PATH"/button.png");
+
+	current = "00:00:00"; 
+	timer = "00:00:00";
+}
 
 TimerClock::pointer TimerClock::getTimerClock(TextLib& textLib) {
 	return std::make_shared<TimerClock>(textLib);
@@ -295,7 +331,10 @@ void TimerClock::draw() const {
 	
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	textLib.draw(TextLib::CENTER_ALIGNED, TextLib::MID_ALIGNED, "00:00:00", 400, 400, 1.0f, glm::vec3(0.4f), TextLib::ARIAL);
+	textLib.draw(TextLib::CENTER_ALIGNED, TextLib::BOTTOM_ALIGNED, current, 400, 400, 1.0f, glm::vec3(0.4f), TextLib::ARIAL);
+	textLib.draw(TextLib::CENTER_ALIGNED, TextLib::BOTTOM_ALIGNED, timer, 400, 300, 1.0f, glm::vec3(0.4f), TextLib::ARIAL);
+
+	button.draw();
 
 	glBindVertexArray(0);
 	Shader::unbind();

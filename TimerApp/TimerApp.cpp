@@ -3,12 +3,16 @@
 #include <iostream>
 #include <Widgets.h>
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+static bool firstMouse = true;
+static float lastX, lastY, lastTime = 0.0f;
+
+static unsigned long long ticks = 0, lastTick = 0;
 
 int WIDTH = 800, HEIGHT = 800;
 
 void frameBufferSizeCallback(GLFWwindow*, int width, int height);
+void cursor_callback(GLFWwindow* window, double xpos, double ypos);
+void button_callback(GLFWwindow* window, int button, int action, int mods);
 
 int main() {
 	glfwInit();
@@ -33,29 +37,62 @@ int main() {
 	}
 
 	glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
+	glfwSetCursorPosCallback(window, cursor_callback);
+	glfwSetMouseButtonCallback(window, button_callback);
+
 	glClearColor(0.35f, 0.0f, 0.6f, 0.0f);
 
 	TextLib textLib(Shader(SHADER_PATH"/textShaderVertex.txt", SHADER_PATH"/textShaderFragment.txt"));
 	TimerClock Timer(textLib);
 
+	float start = glfwGetTime();
+
+	//glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window)) {
-		glClear(GL_COLOR_BUFFER_BIT);
+		float time = glfwGetTime();
+		ticks += (time - lastTime) * 1000'000;
+		
+		lastTime = time;
 
-		Timer.draw();
+		if (ticks - lastTick >= 16'667) {
+			lastTick = ticks;
+			//std::cout << "asd";
+			
+			glClear(GL_COLOR_BUFFER_BIT);
 
-		glfwSwapBuffers(window);
+			Timer.draw();
+			glfwSwapBuffers(window);
+		}
+
+		//std::cout << lastX << " " << lastY << "\n";		
 		glfwPollEvents();
 
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 	}
-
-	std::cout << "achieved partial greateness\n";
+	float end = glfwGetTime();
+	std::cout << "APP RUN FOR [" << end - start << "] SECONDS\n";
+	std::cout << "APP RUN FOR [" << ticks / 1e6 << "] SECONDS\n";
 
 	return 0;
 }
 
 void frameBufferSizeCallback(GLFWwindow*, int width, int height) {
 	glViewport(0, 0, width, height);
+}
+
+void cursor_callback(GLFWwindow* window, double xpos, double ypos) {
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = 0;
+	}
+
+	lastX = xpos;
+	lastY = ypos;
+}
+
+void button_callback(GLFWwindow* window, int button, int action, int mods) {
+
 }
 
