@@ -1,5 +1,6 @@
 #include "Widgets.h"
 
+#include <GLFW/glfw3.h>
 
 GLenum glCheckError_(const char* file, int line) {
 	GLenum errorCode;
@@ -19,6 +20,77 @@ GLenum glCheckError_(const char* file, int line) {
 		std::cout << std::endl;
 	}
 	return errorCode;
+}
+
+template<typename T, typename U>
+T ceiling(T divident, U divisor) {
+	return divident / divisor + (bool)(divident % divisor);
+}
+
+
+std::string to_string(glm::ivec3 vec) {
+	std::string answer = "";
+
+	if (vec[0] < 10) {
+		answer += "0";
+	}
+	answer += std::to_string(vec[0]) + ":";
+
+	if (vec[1] < 10) {
+		answer += "0";
+	}
+	answer += std::to_string(vec[1]) + ":";
+
+	if (vec[2] < 10) {
+		answer += "0";
+	}
+	answer += std::to_string(vec[2]);
+
+	return answer;
+}
+
+std::string to_string(unsigned long long time) {
+	time = ceiling(time, 1000'000);
+	std::string answer = "";
+
+	if (time / 3600 < 10) {
+		answer += "0";
+	}
+	answer += std::to_string(time / 3600) + ":";
+
+	if (time / 60 % 60 < 10) {
+		answer += "0";
+	}
+	answer += std::to_string(time / 60 % 60) + ":";
+
+	if (time % 60 < 10) {
+		answer += "0";
+	}
+	answer += std::to_string(time % 60);
+
+	return answer;
+}
+
+unsigned long long to_ull(std::string str) {
+	unsigned long long answer = 0;
+	answer += std::stoull(str.substr(0, 2));
+	answer += std::stoull(str.substr(3, 2));
+	answer += std::stoull(str.substr(6, 2));
+	return answer * 1e6;
+}
+
+unsigned long long to_ull(glm::ivec3 vec) {
+	return (vec[0] * 3600 + vec[1] * 60 + vec[2]) * 1e6;
+}
+
+glm::ivec3 to_vec(unsigned long long time) {
+	time = ceiling(time, 1000'000);
+	glm::ivec3 vec = { time / 3600,time / 60 % 60,time % 60 };
+	return vec;
+}
+
+glm::ivec3 to_vec(std::string str) {
+	return to_vec(to_ull(str));
 }
 
 
@@ -128,6 +200,55 @@ void TextLib::draw(ALIGNMENT x_alignment, ALIGNMENT y_alignment, std::string tex
 		}
 	}
 }
+
+void TextLib::draw(ALIGNMENT x_alignment, ALIGNMENT y_alignment, std::string text, int x, int y, int scale, FONT font, glm::vec4& box) {
+	if (x_alignment == TextLib::LEFT_ALIGNED) {
+		box[0] = x;
+		for (char c : text) {
+			Font::Character chr = Fonts[font].CharSet[c];
+
+			float xpos = x + chr.Bearing.x * scale;
+			float ypos = y - (chr.Size.y - chr.Bearing.y) * scale;
+
+			if (y_alignment == MID_ALIGNED) {
+				ypos -= chr.Bearing.y * scale / 2;
+			}
+			else if (y_alignment == TOP_ALIGNED) {
+				ypos -= chr.Bearing.y * scale;
+			}
+			
+			/*box[2] = std::min(box[2], ypos + chr.Bearing.y * scale);
+			box[3] = std::max(box[3], ypos - (chr.Size.y - chr.Bearing.y) * scale);*/
+
+			float w = chr.Size.x * scale;
+			float h = chr.Size.y * scale;
+
+			box[2] = std::min(box[2], ypos);
+			box[3] = std::max(box[3], ypos + h);
+
+			x += (chr.Advance >> 6) * scale;
+		}
+
+		box[1] = x;
+	}
+
+	else {
+		int offset = 0;
+		for (char c : text) {
+			Font::Character chr = Fonts[font].CharSet[c];
+			offset += (chr.Advance >> 6) * scale;
+		}
+
+		if (x_alignment == CENTER_ALIGNED) {
+			draw(LEFT_ALIGNED, y_alignment, text, x - offset / 2, y, scale, font, box);
+		}
+
+		else if (x_alignment == RIGHT_ALIGNED) {
+			draw(LEFT_ALIGNED, y_alignment, text, x - offset, y, scale, font, box);
+		}
+	}
+}
+
 
 Font::Font(FT_Face& face) : CharSet(128) {
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -255,6 +376,10 @@ SqrWidget::SqrWidget() : VAO(0), VBO(0), bottom(0), left(0), height(0), width(0)
 	glBindVertexArray(0);
 }
 
+void SqrWidget::draw() const {
+	std::cout << "DONT CALL ME!\n";
+}
+
 
 
 FrameBuffer::FrameBuffer(Shader shader) {
@@ -275,16 +400,15 @@ Button::Button(TextLib& textLib, std::string vertexShader, std::string fragmentS
 
 }
 
-void Button::draw() const {
+void Button::draw(float angle) const {
 	buttonShader.use();
 	glBindVertexArray(VAO);
-
 	
 	buttonShader.setMat4("projection", glm::ortho(0.0f, 800.0f, 0.0f, 800.0f));
 
 	glm::mat4 world = glm::mat4(1.0f);
 	world = glm::translate(world, glm::vec3(400.0f, 400.0f, 0.0f));
-	world = glm::rotate(world, (float)glm::radians(glfwGetTime()) * 5.0f, glm::vec3(0.0f, 0.0f, -1.0f));
+	world = glm::rotate(world, angle, glm::vec3(0.0f, 0.0f, 1.0f));
 	world = glm::translate(world, glm::vec3(0.0f, 306.0f, 0.0f));
 	world = glm::scale(world, glm::vec3(32.0f, 32.0f, 1.0f));
 	buttonShader.setMat4("world", world);
@@ -308,17 +432,35 @@ void Button::configure(std::string vertexShader, std::string fragmentShader, boo
 
 
 
-TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")), textLib(textLib), button(textLib) {
+TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")), clockticks(0), target(0),
+	textLib(textLib), button(textLib), curTime(0), textPointer(3), mousePosition(0.0f) {
 	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
 
 	button.configure(SHADER_PATH"/buttonShaderVertex.txt", SHADER_PATH"/buttonShaderFragment.txt", true, IMAGE_PATH"/button.png");
 
 	current = "00:00:00"; 
-	timer = "00:00:00";
+
+	boxCoords = glm::vec4(1e9, -1e9, 1e9, -1e9);
+	textLib.draw(TextLib::CENTER_ALIGNED, TextLib::MID_ALIGNED, current, 400, 400, 1.0f, TextLib::ARIAL, boxCoords);
+	/*std::cout << boxCoords[0] << "->" << boxCoords[1] << "\n";
+	std::cout << boxCoords[2] << "->" << boxCoords[3] << "\n";*/
 }
 
 TimerClock::pointer TimerClock::getTimerClock(TextLib& textLib) {
 	return std::make_shared<TimerClock>(textLib);
+}
+
+void TimerClock::update() {
+	clockticks += 16'667;
+	if (textPointer == 3) {
+		if (clockticks >= target) {
+			curTime = glm::ivec3(0);
+			clockticks = 0;
+			target = 0;
+		}
+		else curTime = to_vec(target - clockticks);
+	}
+	current = to_string(curTime);
 }
 
 void TimerClock::draw() const {
@@ -331,14 +473,72 @@ void TimerClock::draw() const {
 	
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	textLib.draw(TextLib::CENTER_ALIGNED, TextLib::BOTTOM_ALIGNED, current, 400, 400, 1.0f, glm::vec3(0.4f), TextLib::ARIAL);
-	textLib.draw(TextLib::CENTER_ALIGNED, TextLib::BOTTOM_ALIGNED, timer, 400, 300, 1.0f, glm::vec3(0.4f), TextLib::ARIAL);
 
-	button.draw();
+	textLib.draw(TextLib::CENTER_ALIGNED, TextLib::MID_ALIGNED, current, 400, 400, 1.0f, glm::vec3(0.4f), TextLib::ARIAL);	
+
+	if (textPointer < 3 || clockticks >= target) button.draw(0);
+	else button.draw(glm::radians(360.0f * clockticks / target));
 
 	glBindVertexArray(0);
 	Shader::unbind();
 }
+
+void TimerClock::getInput(int key) {
+	if (key == GLFW_KEY_ENTER) {
+		textPointer = 3;
+		target = to_ull(curTime);
+		clockticks = 0;
+		return;
+	}
+
+	if (key == GLFW_KEY_SPACE) {
+		textPointer++;
+		if (textPointer >= 3) {
+			textPointer = 3;
+			target = to_ull(curTime);
+			clockticks = 0;
+		}
+		return;
+	}
+
+	if (textPointer < 3) {
+		for (int i = 0; i < 10; i++) {
+			if (key == GLFW_KEY_0 + i) {
+				curTime[textPointer] = (curTime[textPointer] * 10 + i) % 100;
+				if (textPointer > 0 && curTime[textPointer] > 59) curTime[textPointer] %= 10;
+			}
+		}
+	}
+}
+
+void TimerClock::getInput(int xpos, int ypos) {
+	mousePosition.x = xpos;
+	mousePosition.y = ypos;
+}
+
+void TimerClock::getInput(int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+		if (mousePosition.x > boxCoords[1] || mousePosition.x < boxCoords[0] ||
+			mousePosition.y < boxCoords[2] || mousePosition.y > boxCoords[3]) {
+			return;
+		}
+		std::cout << "Locked on time\n";
+
+		textPointer = (mousePosition.x - boxCoords[0]) * 3 / (boxCoords[1] - boxCoords[0]);
+		curTime[textPointer] = 0;
+
+		std::cout << textPointer << "\n";
+	}
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
+		std::cout << "Timer Reset\n";
+		curTime = glm::ivec3(0);
+		target = 0;
+		clockticks = 0;
+		textPointer = 3;
+	}
+}
+
+
 
 
 std::shared_ptr<unsigned char*> ResourceManager::loadImage2D(std::string filePath, Image2D* image) {
@@ -346,4 +546,90 @@ std::shared_ptr<unsigned char*> ResourceManager::loadImage2D(std::string filePat
 		stbi_load(filePath.c_str(), &image->width, &image->height, &image->channels, 0));
 	if (!(*data.get())) std::cout << "bad_image\n";
 	return data;
+}
+
+
+
+
+Screen::pointer Screen::currentScreen;
+
+Screen::Screen(TextLib& textLib) : Timer(textLib), firstMouse(true), lastX(0), lastY(0), lastTime(0), ticks(0), lastTick(0),
+	pressedLastFrame(258, false) {
+
+}
+
+Screen::pointer Screen::getScreen(TextLib& textLib) {
+	Screen::pointer ptr = std::make_shared<Screen>(textLib);
+	currentScreen = ptr;
+	return ptr;
+}
+
+void Screen::drawTimer() {
+	Timer.update();
+	Timer.draw();
+}
+
+void Screen::processInputs(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		if (not pressedLastFrame[GLFW_KEY_SPACE]) {
+			pressedLastFrame[GLFW_KEY_SPACE] = true;
+			Timer.getInput(GLFW_KEY_SPACE);
+		}
+	}
+	else pressedLastFrame[GLFW_KEY_SPACE] = false;
+
+	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
+		if (not pressedLastFrame[GLFW_KEY_ENTER]) {
+			pressedLastFrame[GLFW_KEY_ENTER] = true;
+			Timer.getInput(GLFW_KEY_ENTER);
+		}
+	}
+	else pressedLastFrame[GLFW_KEY_ENTER] = false;
+
+	for (int i = 0; i < 10; i++) {
+		if ((glfwGetKey(window, GLFW_KEY_0 + i) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_KP_0 + i) == GLFW_PRESS)) {
+			if (not pressedLastFrame[GLFW_KEY_0 + i]) {
+				pressedLastFrame[GLFW_KEY_0 + i] = true;
+				Timer.getInput(GLFW_KEY_0 + i);
+			}
+		}
+		else  pressedLastFrame[GLFW_KEY_0 + i] = false;
+	}
+}
+
+void Screen::cursor_callback(GLFWwindow* window, double xpos, double ypos) {
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = 0;
+	}
+
+	lastX = xpos;
+	lastY = ypos;
+
+	ypos = 800 - ypos;
+
+	Timer.getInput(xpos, ypos);
+}
+
+void Screen::button_callback(GLFWwindow* window, int button, int action, int mods) {
+	Timer.getInput(button, action, mods);
+}
+
+bool Screen::doDraw(float time) {
+	ticks += (time - lastTime) * 1000'000;
+	lastTime = time;
+
+	bool result = ticks - lastTick >= 16'667;
+	if (result) lastTick = ticks;
+
+	return result;
+}
+
+double Screen::runTime() const {
+	return ticks / 1e6;
 }
