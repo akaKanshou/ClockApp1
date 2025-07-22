@@ -1,0 +1,6 @@
+This is my guess of how to write License. I am *not* going to be researching on how to write a proper one.
+
+This is an open-source project by akaKanshou (github: {TO ADD})
+This application is free to use.
+This file should not be modified. 
+The software can be modified and used by anyone at will, but it is not allowed to change the software to do things not intended by the orignal creater or something.

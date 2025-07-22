@@ -9,7 +9,7 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project (ClockApp1)
+project (ClockApp1 VERSION 1.0)
 
 find_package(OpenGL REQUIRED)
 # Include sub-projects.
@@ -24,3 +24,18 @@ add_library(Settings INTERFACE)
 configure_file(filePaths.h.in filePaths.h)
 target_include_directories(Settings INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(Settings INTERFACE cxx_std_20)
+
+if (WIN32)
+  set(CMAKE_INSTALL_PREFIX "c:/Program Files/${PROJECT_NAME}")
+elseif (UNIX)
+  set(CMAKE_INSTALL_PREFIX "usr/local")
+endif()
+
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+set(CPACK_PACKAGE_VERSION_MAJOR "${Tutorial_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${Tutorial_VERSION_MINOR}")
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+set(CPACK_WIX_VERSION 4)
+include(CPack)

@@ -408,7 +408,7 @@ void Button::draw(float angle) const {
 
 	glm::mat4 world = glm::mat4(1.0f);
 	world = glm::translate(world, glm::vec3(400.0f, 400.0f, 0.0f));
-	world = glm::rotate(world, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+	world = glm::rotate(world, -angle, glm::vec3(0.0f, 0.0f, 1.0f));
 	world = glm::translate(world, glm::vec3(0.0f, 306.0f, 0.0f));
 	world = glm::scale(world, glm::vec3(32.0f, 32.0f, 1.0f));
 	buttonShader.setMat4("world", world);
