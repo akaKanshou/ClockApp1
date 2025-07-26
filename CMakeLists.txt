@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.12)
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -24,12 +24,6 @@ add_library(Settings INTERFACE)
 configure_file(filePaths.h.in filePaths.h)
 target_include_directories(Settings INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(Settings INTERFACE cxx_std_20)
-
-if (WIN32)
-  set(CMAKE_INSTALL_PREFIX "c:/Program Files/${PROJECT_NAME}")
-elseif (UNIX)
-  set(CMAKE_INSTALL_PREFIX "usr/local")
-endif()
 
 include(InstallRequiredSystemLibraries)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")

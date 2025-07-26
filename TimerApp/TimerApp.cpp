@@ -71,6 +71,9 @@ int main() {
 	}
 	
 	glfwTerminate();
+
+	char c; std::cin >> c;
+
 	return 0;
 }
 
