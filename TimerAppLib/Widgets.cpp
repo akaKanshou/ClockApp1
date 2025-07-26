@@ -76,11 +76,11 @@ unsigned long long to_ull(std::string str) {
 	answer += std::stoull(str.substr(0, 2));
 	answer += std::stoull(str.substr(3, 2));
 	answer += std::stoull(str.substr(6, 2));
-	return answer * 1e6;
+	return answer * 1000'000;
 }
 
 unsigned long long to_ull(glm::ivec3 vec) {
-	return (vec[0] * 3600 + vec[1] * 60 + vec[2]) * 1e6;
+	return (vec[0] * 3600 + vec[1] * 60 + vec[2]) * 1000'000;
 }
 
 glm::ivec3 to_vec(unsigned long long time) {
@@ -624,7 +624,7 @@ void Screen::button_callback(GLFWwindow* window, int button, int action, int mod
 	Timer.getInput(button, action, mods);
 }
 
-bool Screen::doDraw(float time) {
+bool Screen::doDraw(double time) {
 	unsigned long long updates = (time - lastTime) * 1000'000;
 	ticks += updates;
 	lastTime = time;
@@ -638,5 +638,5 @@ bool Screen::doDraw(float time) {
 }
 
 double Screen::runTime() const {
-	return ticks / 1e6;
+	return ticks / 1000'000;
 }

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\sidda\Desktop\repo\ca\ClockApp1\TimerAppLib\Widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\sidda\Desktop\repo\ca\ClockApp1\TimerAppLib\Widgets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\sidda\Desktop\repo\ca\ClockApp1\TimerAppLib\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{61AC7A8E-0D43-3DE3-878F-F5B12BC12D8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{83D6EB58-A079-3F94-AF51-EC4EC945500F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\sidda\Desktop\repo\ca\ClockApp1\b1\CMakeFiles\ae970552604ee6f984b0fbb7fb4eb97d\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F91A7D00-3A2D-303D-8562-37465F3AE931}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

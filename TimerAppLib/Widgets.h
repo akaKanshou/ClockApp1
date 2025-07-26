@@ -234,7 +234,7 @@ public:
 	void cursor_callback(GLFWwindow* window, double xpos, double ypos);
 	void button_callback(GLFWwindow* window, int button, int action, int mods);
 
-	bool doDraw(float curTime);
+	bool doDraw(double curTime);
 	double runTime() const;
 };
 

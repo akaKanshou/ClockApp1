@@ -43,7 +43,7 @@ int main() {
 		//TimerClock Timer(textLib);
 		Screen::pointer thisScreen = Screen::getScreen(textLib);
 
-		float start = glfwGetTime();
+		double start = glfwGetTime();
 
 		//glEnable(GL_DEPTH_TEST);
 
@@ -60,7 +60,7 @@ int main() {
 			glfwPollEvents();
 			thisScreen->processInputs(window);
 		}
-		float end = glfwGetTime();
+		double end = glfwGetTime();
 
 		std::cout << "APP RAN FOR [" << end - start << "] SECONDS\n";
 		std::cout << "APP RAN FOR [" << thisScreen->runTime() << "] SECONDS\n";
