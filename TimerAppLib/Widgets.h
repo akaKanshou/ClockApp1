@@ -194,7 +194,7 @@ public:
 	TimerClock(TextLib& textLib);
 	static TimerClock::pointer getTimerClock(TextLib& textLib);
 
-	void update();
+	void update(unsigned long long updates, bool result);
 	void draw() const override;
 
 	void getInput(int key);

@@ -450,17 +450,22 @@ TimerClock::pointer TimerClock::getTimerClock(TextLib& textLib) {
 	return std::make_shared<TimerClock>(textLib);
 }
 
-void TimerClock::update() {
-	clockticks += 16'667;
-	if (textPointer == 3) {
-		if (clockticks >= target) {
-			curTime = glm::ivec3(0);
-			clockticks = 0;
-			target = 0;
+void TimerClock::update(unsigned long long updates, bool result) {
+	clockticks += updates;
+
+	if (result) {
+
+		if (textPointer == 3) {
+			if (clockticks >= target) {
+				curTime = glm::ivec3(0);
+				clockticks = 0;
+				target = 0;
+			}
+			else curTime = to_vec(target - clockticks);
 		}
-		else curTime = to_vec(target - clockticks);
+		current = to_string(curTime);
+
 	}
-	current = to_string(curTime);
 }
 
 void TimerClock::draw() const {
@@ -565,7 +570,6 @@ Screen::pointer Screen::getScreen(TextLib& textLib) {
 }
 
 void Screen::drawTimer() {
-	Timer.update();
 	Timer.draw();
 }
 
@@ -621,11 +625,14 @@ void Screen::button_callback(GLFWwindow* window, int button, int action, int mod
 }
 
 bool Screen::doDraw(float time) {
-	ticks += (time - lastTime) * 1000'000;
+	unsigned long long updates = (time - lastTime) * 1000'000;
+	ticks += updates;
 	lastTime = time;
 
 	bool result = ticks - lastTick >= 16'667;
 	if (result) lastTick = ticks;
+
+	Timer.update(updates, result);
 
 	return result;
 }
