@@ -83,6 +83,10 @@ public:
 		glDeleteShader(fragmentShader);
 	}
 
+	Shader(const Shader& other) {
+		program = other.program;
+	}
+
 	Shader& operator=(Shader&& other)& noexcept {
 		this->program = other.program;
 		other.program = 0;
@@ -118,6 +122,10 @@ public:
 	}
 
 	void setMat4(const std::string& name, glm::mat4& matrix) const {
+		glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
+	}
+
+	void setMat4(const std::string& name, glm::mat4&& matrix) const {
 		glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
 	}
 

@@ -4,21 +4,42 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <filesystem>
 
 #include <filePaths.h>
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <Shaderh.h>
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+#include <fileDet.h>
 
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 GLenum glCheckError_(const char* file, int line);
 
+template<typename T, typename U>
+T ceiling(T divident, U divisor);
+
+std::string to_string(glm::ivec3 vec);
+std::string to_string(unsigned long long time);
+
+unsigned long long to_ull(std::string str);
+unsigned long long to_ull(glm::ivec3 vec);
+
+glm::ivec3 to_vec(unsigned long long time);
+glm::ivec3 to_vec(std::string str);
+
+//std::string getAsset(std::string assetName);
+
 class Font {
 public:
 	struct Character {
-		unsigned int TextureID;
+		unsigned int TextureAddr;
 		glm::ivec2 Size;
 		glm::ivec2 Bearing;
 		unsigned int Advance;
@@ -33,12 +54,34 @@ public:
 class TextLib {
 private:
 	FT_Library Library;
+	Shader textShader;
+	std::vector<Font> Fonts;
+
+	unsigned int VAO, VBO;
 
 public:
-	TextLib();
-	~TextLib();
+	enum ALIGNMENT {
+		LEFT_ALIGNED = 0,
+		RIGHT_ALIGNED = 1,
+		CENTER_ALIGNED = 2,
+
+		TOP_ALIGNED = 3,
+		MID_ALIGNED = 4,
+		BOTTOM_ALIGNED = 5,
+	};
+
+	enum FONT {
+		ARIAL = 0,
+		FUTURA = 1
+	};
+
+	TextLib(Shader&& shader);
+	~TextLib() = default;
 
 	Font loadFont(const char* fontname, int size);
+
+	void draw(ALIGNMENT x_alignment, ALIGNMENT y_alignment, std::string text, int x, int y, int scale, glm::vec3 color, FONT font);
+	void draw(ALIGNMENT x_alignment, ALIGNMENT y_alignment, std::string text, int x, int y, int scale, FONT font, glm::vec4& box);
 };
 
 
@@ -103,7 +146,7 @@ protected:
 public:
 	SqrWidget();
 
-	virtual void draw() const = 0;
+	virtual void draw() const;
 };
 
 class FrameBuffer : protected SqrWidget {
@@ -121,22 +164,46 @@ public:
 	}
 };
 
+class Button : protected SqrWidget{
+	Texture2D buttonTexture;
+	Shader buttonShader;
+	TextLib& textLib;;
+
+public:
+	Button(TextLib& textLib);
+	Button(TextLib& textLib, std::string vertexShader, std::string fragmentShader, std::string imageLoc);
+
+	void draw(float angle) const;
+
+	void configure(std::string vertexShader, std::string fragmentShader, bool useRGBA, std::string imageLoc);
+};
+
+
 class TimerClock : protected SqrWidget, public std::enable_shared_from_this<TimerClock> {
 private:
 	Texture2D bg;
 	Shader shaderBase;
-	Font Font_48;
-
+	TextLib& textLib;
+	Button button;
+	std::string current;
+	glm::ivec3 curTime;
+	glm::vec4 boxCoords;
+	glm::vec2 mousePosition;
+	int textPointer;
+	unsigned long long clockticks, target;
+	
 public:
-	TimerClock(TextLib& textLib);
-	TimerClock();
-
 	typedef std::shared_ptr<TimerClock> pointer;
 
+	TimerClock(TextLib& textLib);
 	static TimerClock::pointer getTimerClock(TextLib& textLib);
-	static TimerClock::pointer getTimerClock();
 
+	void update(unsigned long long updates, bool result);
 	void draw() const override;
+
+	void getInput(int key);
+	void getInput(int xpos, int ypos);
+	void getInput(int button, int action, int mods);
 };
 
 
@@ -145,6 +212,34 @@ class ResourceManager {
 public:
 	static std::shared_ptr<unsigned char*> loadImage2D(std::string filePath, Image2D* image);
 
+};
+
+
+
+class Screen : public std::enable_shared_from_this<Screen> {
+private:
+	TimerClock Timer;
+	float lastX, lastY;
+	bool firstMouse;
+	float lastTime;
+	unsigned long long ticks, lastTick;
+	std::vector<bool> pressedLastFrame;
+
+public:
+	typedef std::shared_ptr<Screen> pointer;
+	Screen(TextLib& textLib);
+	static Screen::pointer getScreen(TextLib& textLib);
+
+	static Screen::pointer currentScreen;
+	
+	void drawTimer();
+	void processInputs(GLFWwindow* window);
+
+	void cursor_callback(GLFWwindow* window, double xpos, double ypos);
+	void button_callback(GLFWwindow* window, int button, int action, int mods);
+
+	bool doDraw(double curTime);
+	double runTime() const;
 };
 
 #endif

@@ -6,8 +6,6 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 
 target_link_libraries(TimerApp PUBLIC TimerAppLib)
-target_link_libraries(TimerApp PUBLIC glfw)
-target_link_libraries(TimerApp PUBLIC OpenGL::GL)
 
 if (WIN32)
     add_custom_command(TARGET TimerApp POST_BUILD
