@@ -5,25 +5,14 @@
 #include <filesystem>
 
 #if defined(_WIN32)
-#	include<Windows.h>
+#define NOMINMAX
+#  include <windows.h>
 #else
-#	include<unistd.h>
+#  include <unistd.h>
 #endif
 
-namespace FileDet {
-	enum ASSET_TYPE {
-		SHADER = 0,
-		FONT = 1,
-		IMAGE = 2,
+std::filesystem::path getCur();
 
-		ERROR_TYPE
-	};
-
-	std::filesystem::path exeDir();
-
-	std::filesystem::path getRoot();
-
-	std::string getPath(FileDet::ASSET_TYPE type, std::string name);
-};
+std::string getAsset(std::string assetname);
 
 #endif 

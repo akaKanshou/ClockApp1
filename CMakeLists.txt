@@ -18,6 +18,7 @@ add_subdirectory ("TimerAppLib")
 add_subdirectory ("TimerApp")
 add_subdirectory("glfw-3.4")
 add_subdirectory("freetype")
+add_subdirectory("fileDetLib")
 
 add_library(Settings INTERFACE)
 
@@ -25,10 +26,29 @@ configure_file(filePaths.h.in filePaths.h)
 target_include_directories(Settings INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(Settings INTERFACE cxx_std_20)
 
+install(TARGETS TimerApp 
+  RUNTIME DESTINATION bin)
+
+install(FILES ${CMAKE_SOURCE_DIR}/freetype/freetype.dll 
+  DESTINATION bin)
+
+message("--INSTALLED BIN FILES")
+
+install(FILES "${CMAKE_SOURCE_DIR}/deps1/bg3.png" "${CMAKE_SOURCE_DIR}/deps1/button.png"
+  DESTINATION share/ClockApp1)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/deps1/Shaders
+  DESTINATION share/ClockApp1)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/deps1/Fonts
+  DESTINATION share/ClockApp1)
+
+message("--INSTALLED SHARE FILES")
+
 include(InstallRequiredSystemLibraries)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
-set(CPACK_PACKAGE_VERSION_MAJOR "${Tutorial_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${Tutorial_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${ClockApp1_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${ClockApp1_VERSION_MINOR}")
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_SOURCE_GENERATOR "TGZ")
 set(CPACK_WIX_VERSION 4)

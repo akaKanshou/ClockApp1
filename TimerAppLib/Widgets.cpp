@@ -93,6 +93,11 @@ glm::ivec3 to_vec(std::string str) {
 	return to_vec(to_ull(str));
 }
 
+// std::string getAsset(std::string assetName) {
+// 	std::cout << std::filesystem::weakly_canonical(std::filesystem::current_path() / ".." / "share").string() << "\n";
+// 	std::string assetPath = std::filesystem::canonical(std::filesystem::current_path() / ".." / "share").string();
+// 	return assetPath + std::string("/") + assetName;
+// }
 
 
 TextLib::TextLib(Shader&& shader) : textShader(shader), VAO(0), VBO(0), Library() {
@@ -111,8 +116,8 @@ TextLib::TextLib(Shader&& shader) : textShader(shader), VAO(0), VBO(0), Library(
 		return;
 	}
 
-	Fonts.push_back(loadFont(FONT_PATH"/arial.ttf", 120));
-	Fonts.push_back(loadFont(FONT_PATH"/Futura-M.ttf", 120));
+	Fonts.push_back(loadFont(getAsset("Fonts/arial.ttf").c_str(), 120));
+	Fonts.push_back(loadFont(getAsset("Fonts/Futura-M.ttf").c_str(), 120));
 	
 	FT_Done_FreeType(Library);
 }
@@ -432,11 +437,11 @@ void Button::configure(std::string vertexShader, std::string fragmentShader, boo
 
 
 
-TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, IMAGE_PATH"/bg3.png")), clockticks(0), target(0),
+TimerClock::TimerClock(TextLib& textLib) : bg(Image2D(1, getAsset("bg3.png").c_str())), clockticks(0), target(0),
 	textLib(textLib), button(textLib), curTime(0), textPointer(3), mousePosition(0.0f) {
-	shaderBase = Shader(SHADER_PATH"/TimerClockVertex1.txt", SHADER_PATH"/TimerClockFragment1.txt");
+	shaderBase = Shader(getAsset("Shaders/TimerClockVertex1.txt").c_str(), getAsset("Shaders/TimerClockFragment1.txt").c_str());
 
-	button.configure(SHADER_PATH"/buttonShaderVertex.txt", SHADER_PATH"/buttonShaderFragment.txt", true, IMAGE_PATH"/button.png");
+	button.configure(getAsset("Shaders/buttonShaderVertex.txt"), getAsset("Shaders/buttonShaderFragment.txt"), true, getAsset("button.png"));
 
 	current = "00:00:00"; 
 
@@ -638,5 +643,5 @@ bool Screen::doDraw(double time) {
 }
 
 double Screen::runTime() const {
-	return ticks / 1000'000;
+	return (double)ticks / 1e6;
 }

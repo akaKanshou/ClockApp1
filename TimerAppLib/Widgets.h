@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <filesystem>
 
 #include <filePaths.h>
 #include <stb_image.h>
@@ -15,6 +16,8 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+#include <fileDet.h>
 
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 GLenum glCheckError_(const char* file, int line);
@@ -31,6 +34,7 @@ unsigned long long to_ull(glm::ivec3 vec);
 glm::ivec3 to_vec(unsigned long long time);
 glm::ivec3 to_vec(std::string str);
 
+//std::string getAsset(std::string assetName);
 
 class Font {
 public:
